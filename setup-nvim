@@ -1,0 +1,52 @@
+cat > ~/setup-nvim.sh << 'EOF'
+#!/bin/bash
+set -e
+
+echo "Updating apt..."
+sudo apt update
+
+echo "Installing dependencies..."
+sudo apt install -y gcc make ripgrep curl libclang-dev
+
+echo "Installing Rust/cargo for tree-sitter..."
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+source ~/.cargo/env
+cargo install tree-sitter-cli
+
+echo "Adding cargo to PATH..."
+echo 'export PATH="$HOME/.cargo/bin:$PATH"' >> ~/.bashrc
+export PATH="$HOME/.cargo/bin:$PATH"
+
+echo "Installing Neovim..."
+rm -rf /tmp/nvim-install
+mkdir /tmp/nvim-install
+curl -L https://github.com/neovim/neovim/releases/latest/download/nvim-linux-x86_64.tar.gz \
+  -o /tmp/nvim-install/nvim.tar.gz
+tar -xzf /tmp/nvim-install/nvim.tar.gz -C /tmp/nvim-install
+sudo rm -rf /opt/nvim
+sudo mv /tmp/nvim-install/nvim-linux-x86_64 /opt/nvim
+sudo ln -sf /opt/nvim/bin/nvim /usr/local/bin/nvim
+
+echo "Cleaning old config..."
+rm -rf ~/.config/nvim ~/.local/share/nvim ~/.local/state/nvim ~/.cache/nvim
+
+echo "Cloning your AstroNvim config..."
+git clone https://github.com/m-kolomanski/AstroNvimTemplate ~/.config/nvim
+
+echo "Launching nvim headless to install plugins..."
+nvim --headless "+Lazy! sync" +qa 2>/dev/null || true
+
+echo "Removing bad tree-sitter binaries..."
+find ~/.local/share/nvim -name "tree-sitter" -type f -delete 2>/dev/null || true
+
+echo "Installing Treesitter parsers..."
+nvim --headless "+TSUpdate" +qa 2>/dev/null || true
+
+echo "Installing R language server..."
+nvim --headless "+MasonInstall r-languageserver" +qa 2>/dev/null || true
+
+echo "Launching nvim..."
+nvim
+EOF
+chmod +x ~/setup-nvim.sh
+~/setup-nvim.sh
