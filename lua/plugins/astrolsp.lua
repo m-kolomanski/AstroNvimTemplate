@@ -2,7 +2,7 @@ return {
   "AstroNvim/astrolsp",
   opts = {
     features = {
-      signature_help = true,
+      signature_help = false,
     },
   },
 }
