@@ -16,20 +16,34 @@ end
 return {
   "AstroNvim/astrocore",
   opts = {
+    mappings = {
+      i = {
+        ["<C-e>"] = { function()
+        for _, win in ipairs(vim.api.nvim_list_wins()) do
+          if vim.api.nvim_win_get_config(win).relative ~= "" then
+            vim.api.nvim_win_close(win, true)
+          end
+        end
+      end, desc = "Dismiss signature help" },
+      },
+    },
     autocmds = {
       signature_help_r = {
         {
           event = "TextChangedI",
-          pattern = "*.R",
+          pattern = "*",
           callback = function()
             local line = vim.api.nvim_get_current_line()
             local col = vim.fn.col(".") - 1
+            local before_cursor = line:sub(1, col)
+            -- count unescaped quotes before cursor; odd = inside string
+            local _, quote_count = before_cursor:gsub('"', '')
+            if quote_count % 2 ~= 0 then return end
             local char = line:sub(col, col)
             if char == "(" or char == "," then
               safe_signature_help()
-            elseif char == " " or char == "" then
-              local before_cursor = line:sub(1, col)
-              if before_cursor:match("%(") and not before_cursor:match("%)%s*$") then
+            elseif char == " " then
+              if before_cursor:match(",%s*$") then
                 safe_signature_help()
               end
             end
