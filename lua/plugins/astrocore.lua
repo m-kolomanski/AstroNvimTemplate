@@ -4,6 +4,20 @@
 -- NOTE: We highly recommend setting up the Lua Language Server (`:LspInstall lua_ls`)
 --       as this provides autocomplete and documentation while editing
 
+local function mc_add_next_word()
+  vim.cmd "normal! Q"
+  local word = vim.fn.expand "<cword>"
+  if word == "" then return end
+  local pattern = "\\<" .. vim.fn.escape(word, "\\/.*$^~[]") .. "\\>"
+  vim.fn.setreg("/", pattern)
+  vim.fn.search(pattern)
+end
+
+local function mc_clear_all()
+  local ns = vim.api.nvim_create_namespace "nvim.multicursor"
+  vim.api.nvim_buf_clear_namespace(0, ns, 0, -1)
+end
+
 ---@type LazySpec
 return {
   "AstroNvim/astrocore",
@@ -78,6 +92,11 @@ return {
 
         -- setting a mapping to false will disable it
         -- ["<C-S>"] = false,
+
+        -- multicursor: select word under cursor, add cursor on next instance
+        ["<A-Q>"] = { mc_add_next_word, desc = "Multicursor: add cursor on next instance of word" },
+        -- multicursor: clear all cursors
+        ["<A-q>"] = { mc_clear_all, desc = "Multicursor: clear all cursors" },
       },
     },
   },
