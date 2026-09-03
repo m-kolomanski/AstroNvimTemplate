@@ -6,16 +6,19 @@ return {
     },
   },
   {
-    "Astro/astrolsp",
+    "AstroNvim/astrolsp",
     opts = {
-      servers = {
-        pyright = {
-          settings = {
-            python = {
-              pythonPath = vim.fn.trim(vim.fn.system("uv run which python")),
+      handlers = {
+        pyright = function(server)
+          vim.lsp.config(server, {
+            settings = {
+              python = {
+                pythonPath = vim.fn.trim(vim.fn.system("uv run which python")),
+              },
             },
-          },
-        },
+          })
+          vim.lsp.enable(server)
+        end,
       },
     },
   },
